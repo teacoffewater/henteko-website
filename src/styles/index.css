@@ -129,7 +129,7 @@ body {
   width: 13%;
   height: auto;
   /* スイープ開始位置(左端)をホームポジションにして開始時のジャンプを防ぐ */
-  transform: translateX(-300%);
+  transform: translateX(-360%);
 }
 
 .phase-print .gantry {
@@ -156,10 +156,12 @@ body {
 
 @keyframes nozzle-sweep {
   from {
-    transform: translateX(-300%); /* 自身の幅13% × ±3 = ロゴ幅の±39% */
+    /* 自身の幅13% × ±3.6 = ロゴ幅の±46.8%。
+       造形物の横幅(プレート≈全幅、文字2.6〜94%)をカバーする */
+    transform: translateX(-360%);
   }
   to {
-    transform: translateX(300%);
+    transform: translateX(360%);
   }
 }
 
