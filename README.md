@@ -4,13 +4,20 @@
 
 ページ遷移なしのシングルページ・インタラクティブサイト。作品はコンベアベルトに載って流れてくる。
 
+## 公開URL
+
+**https://teacoffewater.github.io/henteko-website/** (GitHub Pages)
+
 ## 使い方
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
-npm run build    # dist/ に静的ファイルを出力(GitHub Pages等にそのまま置ける)
+npm run dev      # http://localhost:5173 (--host付きなので同一Wi-FiのスマホからもMacのIPで見られる)
+npm run build    # dist/ に静的ファイルを出力
+npm run deploy   # ビルドして gh-pages ブランチへ公開(GitHub Pagesに反映)
 ```
+
+コード変更を公開に反映する手順: `git push`(ソース保存)+ `npm run deploy`(サイト更新)。
 
 ## 作品を追加する
 
