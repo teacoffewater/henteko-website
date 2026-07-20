@@ -2,7 +2,13 @@
 
 役に立つかは、つくってから考える。
 
-ページ遷移なしのシングルページ・インタラクティブサイト。作品はコンベアベルトに載って流れてくる。
+スクロールなしの1画面シーン制インタラクティブサイト。
+浮遊するメニュー(「つくったもの」「つくっているひと」)をタッチすると、
+その点から白いワイプが広がってシーンが切り替わり、コンテンツがタッチ点から飛び出して配置される。
+
+- home : ロゴが3Dプリントされる(初回のみ自動再生)
+- works: 作品カードが散らばり配置。掴んで自由に動かせる(慣性つき)
+- about: 製造者銘板風のプロフィール(`src/data/profile.ts` を編集)
 
 ## 公開URL
 
@@ -55,7 +61,7 @@ sips -Z 800 -s format jpeg -s formatOptions 82 元画像.png --out public/works/
 
 ## 隠し要素
 
-- ロゴを3秒以内に5連打すると、作品がベルトから全部落ちる
+- ロゴを3秒以内に5連打すると、プリントアニメーションをもう一度再生する
 - `?static=1` を付けると全アニメーション停止(prefers-reduced-motion でも同様)
 
 ## 技術メモ
@@ -63,6 +69,5 @@ sips -Z 800 -s format jpeg -s formatOptions 82 元画像.png --out public/works/
 - Vite + React + TypeScript。ランタイム依存は react / react-dom のみ(アニメーションライブラリなし)
 - 動きは共有 requestAnimationFrame ループ1本が ref へ直接 transform を書く方式。
   フレーム毎の React 再レンダはゼロ、transform/opacity のみでアニメーション
-- ドラッグは Pointer Events(マウス/タッチ統一)+ `touch-action: pan-y` で縦スクロール共存
-- ベルトは無限ループ(mod折り返し)、画面外アイテムはスキップ、
-  セクションが画面外なら IntersectionObserver で処理停止
+- ドラッグは Pointer Events(マウス/タッチ統一)。ページ自体はスクロールしない(html/body固定)
+- シーン遷移の白ワイプは `clip-path: circle()` のワンショットCSS transition

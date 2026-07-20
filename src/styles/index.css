@@ -1,4 +1,4 @@
-/* ヘンテコ製作所 — 白い工場のコンベア */
+/* ヘンテコ製作所 — スクロールなしの1画面シーン制 */
 
 :root {
   --bg: #fafaf7;
@@ -13,8 +13,10 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
+html,
+body {
+  height: 100%;
+  overflow: hidden; /* スクロールしないサイト */
 }
 
 body {
@@ -24,9 +26,6 @@ body {
   font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic',
     sans-serif;
   -webkit-font-smoothing: antialiased;
-  /* clip: hiddenと違いプログラムによる横スクロールも不可能にする
-     (フォーカス移動が画面外要素へ勝手にスクロールするのを防ぐ) */
-  overflow-x: clip;
 }
 
 ::selection {
@@ -34,16 +33,26 @@ body {
   color: #fff;
 }
 
-/* ---------- ヒーロー ---------- */
+.app {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---------- ホーム(ロゴ3Dプリント) ---------- */
 
 .hero {
-  min-height: 100svh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 2rem 1rem;
+  padding: 1rem;
 }
 
 .logo {
@@ -227,22 +236,6 @@ body {
   }
 }
 
-/* プリント中はタグライン等を隠す */
-.phase-print .tagline,
-.phase-print .scroll-hint,
-.phase-snap .tagline,
-.phase-snap .scroll-hint {
-  opacity: 0;
-}
-
-.phase-done .tagline {
-  transition: opacity 0.5s ease-out 0.2s;
-}
-
-.phase-done .scroll-hint {
-  transition: opacity 0.5s ease-out 0.4s;
-}
-
 .tagline {
   margin: 2.2rem 0 0;
   font-size: clamp(0.9rem, 2.6vw, 1.05rem);
@@ -283,94 +276,125 @@ body {
   }
 }
 
-.scroll-hint {
-  margin-top: 3.5rem;
-  font-size: 1.1rem;
-  color: var(--ink-soft);
-  animation: hint-bob 2.6s ease-in-out infinite;
+/* プリント中はタグラインとメニューを隠す */
+.phase-print .tagline,
+.phase-snap .tagline {
+  opacity: 0;
 }
 
-@keyframes hint-bob {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(8px);
-  }
+.phase-done .tagline {
+  transition: opacity 0.5s ease-out 0.2s;
 }
 
-/* ---------- コンベアベルト ---------- */
+/* ---------- 浮遊メニュー ---------- */
 
-.belt-section {
-  padding: 3rem 0 5rem;
-  overflow: clip;
+/* ロゴのプリント中はメニューを隠す(heroの後続兄弟にnavがいる構造を利用) */
+.hero.phase-print ~ .floating-menu,
+.hero.phase-snap ~ .floating-menu {
+  opacity: 0;
+  pointer-events: none;
 }
 
-.belt-heading {
-  margin: 0 0 2.5rem;
-  text-align: center;
+.floating-menu {
+  transition: opacity 0.5s ease-out 0.3s;
+}
+
+.menu-pill {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 5;
+  appearance: none;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.88rem;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.65em 1.3em;
+  cursor: pointer;
+  box-shadow: 3px 4px 0 rgba(26, 26, 26, 0.12);
+  will-change: transform;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.menu-pill:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* reduced: 浮遊させず右上に静止スタック */
+.reduced .menu-pill {
+  left: auto;
+  right: 14px;
+  transform: none !important;
+}
+
+.reduced .menu-pill:nth-child(1) {
+  top: 14px;
+}
+
+.reduced .menu-pill:nth-child(2) {
+  top: 66px;
+}
+
+/* ---------- 白ワイプ ---------- */
+
+.wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--bg);
+  transition: clip-path 0.45s ease-in;
+}
+
+.wipe-fade {
+  opacity: 0;
+  transition: opacity 0.3s ease-out 0.05s;
+}
+
+/* ---------- つくったもの(散らばり配置) ---------- */
+
+.field-heading {
+  position: absolute;
+  top: 4.5%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.35em;
   text-indent: 0.35em;
-  color: var(--ink);
+  white-space: nowrap;
+  animation: heading-in 0.6s ease-out 0.3s both;
 }
 
-.belt-track {
-  position: relative;
-  height: 260px;
-  touch-action: pan-y;
-  cursor: grab;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
+@keyframes heading-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.belt-track:active {
-  cursor: grabbing;
-}
-
-.belt-item {
+.field-item {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 300px;
-  height: 224px;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  visibility: hidden; /* 初回フレームで rAF が visible にする */
+  transform: translate(-50%, -50%);
   will-change: transform;
-  transform-origin: 50% 100%;
+  touch-action: none; /* ページ自体がスクロールしないので全ポインタ操作を掴む */
+  cursor: grab;
 }
 
-.belt-line-clip {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 226px;
-  height: 3px;
-  overflow: hidden;
-}
-
-.belt-line {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 3px;
-  width: calc(100% + 72px);
-  background: repeating-linear-gradient(90deg, var(--ink) 0 20px, transparent 20px 36px);
-  will-change: transform;
-}
-
-.belt-hint {
-  margin: 2.4rem 0 0;
-  text-align: center;
-  font-size: 0.75rem;
-  letter-spacing: 0.22em;
-  text-indent: 0.22em;
-  color: var(--ink-soft);
+.field-item:active {
+  cursor: grabbing;
 }
 
 /* カード */
@@ -385,11 +409,12 @@ body {
   border-radius: 14px;
   box-shadow: 4px 5px 0 rgba(26, 26, 26, 0.12);
   padding: 9px 9px 7px;
-  width: 202px;
+  width: clamp(150px, 24vmin, 202px);
   display: flex;
   flex-direction: column;
   gap: 7px;
   cursor: pointer;
+  pointer-events: none; /* ドラッグ/タップはfield-item側で処理 */
 }
 
 .work-card:focus-visible {
@@ -408,7 +433,8 @@ body {
 .work-thumb svg {
   display: block;
   width: 100%;
-  height: 130px;
+  height: auto;
+  aspect-ratio: 180 / 130;
   object-fit: cover;
 }
 
@@ -434,32 +460,141 @@ body {
   line-height: 1.4;
 }
 
-/* ベルトの詰め物(アヒル・準備中の箱) */
+/* 詰め物(アヒル・準備中の箱) */
 
-.belt-prop {
+.field-prop {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   color: var(--ink);
 }
 
 .duck {
-  width: 88px;
+  width: clamp(64px, 11vmin, 88px);
   height: auto;
   display: block;
 }
 
 .prep-box {
-  width: 156px;
-  height: 92px;
+  width: clamp(120px, 20vmin, 156px);
+  min-height: 84px;
   border: 2px dashed var(--ink-soft);
   border-radius: 10px;
-  align-items: center;
   text-align: center;
   padding: 10px;
   font-size: 0.68rem;
   letter-spacing: 0.06em;
   color: var(--ink-soft);
+}
+
+/* ---------- つくっているひと(製造者銘板) ---------- */
+
+.about-scene {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+}
+
+.nameplate {
+  position: relative;
+  width: min(480px, 92vw);
+  max-height: 80svh;
+  overflow-y: auto;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  box-shadow: 5px 6px 0 rgba(26, 26, 26, 0.12);
+  padding: 2.1rem 1.8rem 1.4rem;
+  transition: transform 0.55s cubic-bezier(0.2, 1.35, 0.4, 1), opacity 0.3s ease-out;
+}
+
+.screw {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: #fff;
+}
+
+/* ネジ溝 */
+.screw::after {
+  content: '';
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  top: 50%;
+  height: 1.5px;
+  background: var(--ink);
+  transform: rotate(45deg);
+}
+
+.screw-tl {
+  top: 8px;
+  left: 8px;
+}
+
+.screw-tr {
+  top: 8px;
+  right: 8px;
+}
+
+.screw-bl {
+  bottom: 8px;
+  left: 8px;
+}
+
+.screw-br {
+  bottom: 8px;
+  right: 8px;
+}
+
+.np-title {
+  margin: 0 0 1.1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 0.7rem;
+}
+
+.np-rows {
+  margin: 0;
+}
+
+.np-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(26, 26, 26, 0.14);
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+.np-row dt {
+  flex: 0 0 4.5em;
+  color: var(--ink-soft);
+  letter-spacing: 0.1em;
+}
+
+.np-row dd {
+  margin: 0;
+}
+
+.np-row a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+
+.np-note {
+  margin: 1rem 0 0;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.1em;
 }
 
 /* ---------- 詳細オーバーレイ ---------- */
@@ -599,46 +734,32 @@ body {
   color: var(--ink-soft);
 }
 
-/* ---------- フッター ---------- */
-
-.footer {
-  padding: 3rem 1.5rem 4.5rem;
-  text-align: center;
-  font-size: 0.8rem;
-  line-height: 2;
-  color: var(--ink-soft);
-}
-
-.footer p {
-  margin: 0;
-}
-
-.footer a {
-  color: var(--accent);
-}
-
 /* ---------- reduced motion(?static=1 も App が .reduced を付ける) ---------- */
 
 .reduced .maru,
-.reduced .scroll-hint,
 .reduced .logo-box.popping,
 .reduced .logo-letters,
+.reduced .field-heading,
 .reduced .detail-backdrop,
 .reduced .detail-card {
   animation: none;
 }
 
+.reduced .nameplate {
+  transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .maru,
-  .scroll-hint,
   .logo-box.popping,
   .logo-letters,
+  .field-heading,
   .detail-backdrop,
   .detail-card {
     animation: none;
   }
 
-  html {
-    scroll-behavior: auto;
+  .nameplate {
+    transition: none;
   }
 }

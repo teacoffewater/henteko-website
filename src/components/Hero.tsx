@@ -1,35 +1,41 @@
 import { useEffect, useRef, useState } from 'react'
 import { asset } from '../lib/asset'
 
-// ヒーロー: ロゴが3Dプリントされる導入アニメーション(レイヤー合成版)。
+// ホームシーン: ロゴが3Dプリントされる導入アニメーション(レイヤー合成版)。
 //   print: 文字+サポートが下から積層され、ガイドレール+ノズルが境界と一緒に上昇。
 //          ノズルは左右にスキャンする
 //   snap : プリント完了の小さな振動
 //   done : ガントリーが上に退場し、サポート(+ビルドプレート)が下に外れて落ち、
 //          文字だけが残ってロゴ完成
-// reduced motion 時は最初から done(完成ロゴのみ)。
-// 完成後にロゴを3秒以内に5連打すると onSpill(ベルトから全部落ちる)。
+// プリントは初回訪問時のみ自動再生(シーンを行き来しても再生し直さない)。
+// 完成後にロゴを3秒以内に5連打するとプリントをもう一度再生する。
+// reduced motion 時は常に完成ロゴのみ。
 
 type Phase = 'print' | 'snap' | 'done'
 
-export function Hero({ reduced, onSpill }: { reduced: boolean; onSpill: () => void }) {
-  const [phase, setPhase] = useState<Phase>(reduced ? 'done' : 'print')
+// モジュールレベルで記録: シーン切替でHeroが再マウントされても再生し直さない
+let hasPrintedOnce = false
+
+export function Hero({ reduced }: { reduced: boolean }) {
+  const [phase, setPhase] = useState<Phase>(reduced || hasPrintedOnce ? 'done' : 'print')
+  const [run, setRun] = useState(reduced || hasPrintedOnce ? 0 : 1)
   const clicks = useRef<number[]>([])
   const [pop, setPop] = useState(0)
 
   useEffect(() => {
-    if (reduced) {
-      setPhase('done')
-      return
-    }
+    if (reduced || run === 0) return
+    setPhase('print')
     // プリント終了 = アニメーション遅延0.2s + 5.2s = 5.4s
     const t1 = setTimeout(() => setPhase('snap'), 5500)
-    const t2 = setTimeout(() => setPhase('done'), 5820)
+    const t2 = setTimeout(() => {
+      setPhase('done')
+      hasPrintedOnce = true
+    }, 5820)
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
     }
-  }, [reduced])
+  }, [run, reduced])
 
   const handleClick = () => {
     if (phase !== 'done') return
@@ -38,12 +44,12 @@ export function Hero({ reduced, onSpill }: { reduced: boolean; onSpill: () => vo
     if (!reduced) setPop((p) => p + 1)
     if (clicks.current.length >= 5) {
       clicks.current = []
-      onSpill()
+      if (!reduced) setRun((r) => r + 1) // イースターエッグ: プリントをもう一度
     }
   }
 
   return (
-    <header className={`hero phase-${phase}`}>
+    <header className={`scene hero phase-${phase}`}>
       <h1 className="logo" onClick={handleClick} aria-label="ヘンテコ製作所" title="ヘンテコ製作所">
         <span className={pop ? 'logo-box popping' : 'logo-box'} key={pop}>
           <img
@@ -71,9 +77,6 @@ export function Hero({ reduced, onSpill }: { reduced: boolean; onSpill: () => vo
       <p className="tagline">
         役に立つかは、つくってから考える<span className="maru">。</span>
       </p>
-      <div className="scroll-hint" aria-hidden="true">
-        ↓
-      </div>
     </header>
   )
 }
